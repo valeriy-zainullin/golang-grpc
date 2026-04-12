@@ -1,0 +1,105 @@
+syntax = "proto3";
+
+import "google/api/annotations.proto";
+
+// https://gist.github.com/terwey/9797498c85465811582242cbabda27a8
+option go_package = "./gen";
+
+package blog;
+
+message Page {
+    uint64 offset = 1;
+    uint64 limit = 2;
+}
+
+message Url {
+    string href = 1;
+}
+
+message UserId {
+    uint64 value = 1;
+}
+
+message User {
+    UserId id = 1;
+    string nickname = 2;
+    Url photo_url = 3;
+}
+
+message PostId {
+    uint64 value = 1;
+}
+
+message Post {
+    PostId id = 1;
+    User author = 2;
+    string body = 3;
+
+    // Seconds since 1 Jan, 1970 00:00 UTC (unix time)
+    // Converted to client date and time with timezone
+    // at front end.
+    uint64 created_at = 4;
+
+    uint32 num_liked = 5;
+    repeated User liked = 6;
+}
+
+message CreatePostResult {
+    bool success = 1;
+    uint64 created_id = 2;
+}
+
+message EditPostResult {
+    bool success = 1;
+}
+
+message DeletePostResult {
+    bool success = 1;
+}
+
+message LikePostResult {
+    bool success = 1;
+}
+
+message UnlikePostResult {
+    bool success = 1;
+}
+
+// https://web.archive.org/web/20260118081105/https://blog.bullgare.com/2020/07/complete-list-of-swagger-options-to-protobuf-file/
+service Blog {
+    rpc GetPosts(Page) returns(stream Post) {
+        option (google.api.http) = {
+            post: "/v1/posts"
+            body: "*"
+        };
+    }
+
+    rpc CreatePost(Post) returns(CreatePostResult) {
+        option (google.api.http) = {
+            put: "/v1/posts"
+            body: "*"
+        };
+    }
+    rpc EditPost(Post) returns(EditPostResult) {
+        option (google.api.http) = {
+            patch: "/v1/posts"
+            body: "*"
+        };
+    }
+    rpc DeletePost(PostId) returns(DeletePostResult) {
+        option (google.api.http) = {
+            delete: "/v1/posts/{value}"
+        };
+    }
+
+    rpc LikePost(PostId) returns(LikePostResult) {
+        option (google.api.http) = {
+            put: "/v1/posts/{value}/like"
+        };
+    }
+    rpc UnlikePost(PostId) returns(UnlikePostResult) {
+        option (google.api.http) = {
+            delete: "/v1/posts/{value}/like"
+        };
+    }
+}
