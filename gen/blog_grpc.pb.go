@@ -19,23 +19,27 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Blog_GetPosts_FullMethodName   = "/blog.Blog/GetPosts"
-	Blog_CreatePost_FullMethodName = "/blog.Blog/CreatePost"
-	Blog_EditPost_FullMethodName   = "/blog.Blog/EditPost"
-	Blog_DeletePost_FullMethodName = "/blog.Blog/DeletePost"
-	Blog_LikePost_FullMethodName   = "/blog.Blog/LikePost"
-	Blog_UnlikePost_FullMethodName = "/blog.Blog/UnlikePost"
+	Blog_GetPosts_FullMethodName       = "/blog.Blog/GetPosts"
+	Blog_CreatePost_FullMethodName     = "/blog.Blog/CreatePost"
+	Blog_EditPost_FullMethodName       = "/blog.Blog/EditPost"
+	Blog_DeletePost_FullMethodName     = "/blog.Blog/DeletePost"
+	Blog_LikePost_FullMethodName       = "/blog.Blog/LikePost"
+	Blog_CheckLikedPost_FullMethodName = "/blog.Blog/CheckLikedPost"
+	Blog_UnlikePost_FullMethodName     = "/blog.Blog/UnlikePost"
 )
 
 // BlogClient is the client API for Blog service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// https://web.archive.org/web/20260118081105/https://blog.bullgare.com/2020/07/complete-list-of-swagger-options-to-protobuf-file/
 type BlogClient interface {
 	GetPosts(ctx context.Context, in *Page, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Post], error)
 	CreatePost(ctx context.Context, in *Post, opts ...grpc.CallOption) (*CreatePostResult, error)
 	EditPost(ctx context.Context, in *Post, opts ...grpc.CallOption) (*EditPostResult, error)
 	DeletePost(ctx context.Context, in *PostId, opts ...grpc.CallOption) (*DeletePostResult, error)
 	LikePost(ctx context.Context, in *PostId, opts ...grpc.CallOption) (*LikePostResult, error)
+	CheckLikedPost(ctx context.Context, in *PostId, opts ...grpc.CallOption) (*CheckLikedPostResult, error)
 	UnlikePost(ctx context.Context, in *PostId, opts ...grpc.CallOption) (*UnlikePostResult, error)
 }
 
@@ -106,6 +110,16 @@ func (c *blogClient) LikePost(ctx context.Context, in *PostId, opts ...grpc.Call
 	return out, nil
 }
 
+func (c *blogClient) CheckLikedPost(ctx context.Context, in *PostId, opts ...grpc.CallOption) (*CheckLikedPostResult, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CheckLikedPostResult)
+	err := c.cc.Invoke(ctx, Blog_CheckLikedPost_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *blogClient) UnlikePost(ctx context.Context, in *PostId, opts ...grpc.CallOption) (*UnlikePostResult, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UnlikePostResult)
@@ -119,12 +133,15 @@ func (c *blogClient) UnlikePost(ctx context.Context, in *PostId, opts ...grpc.Ca
 // BlogServer is the server API for Blog service.
 // All implementations must embed UnimplementedBlogServer
 // for forward compatibility.
+//
+// https://web.archive.org/web/20260118081105/https://blog.bullgare.com/2020/07/complete-list-of-swagger-options-to-protobuf-file/
 type BlogServer interface {
 	GetPosts(*Page, grpc.ServerStreamingServer[Post]) error
 	CreatePost(context.Context, *Post) (*CreatePostResult, error)
 	EditPost(context.Context, *Post) (*EditPostResult, error)
 	DeletePost(context.Context, *PostId) (*DeletePostResult, error)
 	LikePost(context.Context, *PostId) (*LikePostResult, error)
+	CheckLikedPost(context.Context, *PostId) (*CheckLikedPostResult, error)
 	UnlikePost(context.Context, *PostId) (*UnlikePostResult, error)
 	mustEmbedUnimplementedBlogServer()
 }
@@ -150,6 +167,9 @@ func (UnimplementedBlogServer) DeletePost(context.Context, *PostId) (*DeletePost
 }
 func (UnimplementedBlogServer) LikePost(context.Context, *PostId) (*LikePostResult, error) {
 	return nil, status.Error(codes.Unimplemented, "method LikePost not implemented")
+}
+func (UnimplementedBlogServer) CheckLikedPost(context.Context, *PostId) (*CheckLikedPostResult, error) {
+	return nil, status.Error(codes.Unimplemented, "method CheckLikedPost not implemented")
 }
 func (UnimplementedBlogServer) UnlikePost(context.Context, *PostId) (*UnlikePostResult, error) {
 	return nil, status.Error(codes.Unimplemented, "method UnlikePost not implemented")
@@ -258,6 +278,24 @@ func _Blog_LikePost_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Blog_CheckLikedPost_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PostId)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BlogServer).CheckLikedPost(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Blog_CheckLikedPost_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BlogServer).CheckLikedPost(ctx, req.(*PostId))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Blog_UnlikePost_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PostId)
 	if err := dec(in); err != nil {
@@ -298,6 +336,10 @@ var Blog_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LikePost",
 			Handler:    _Blog_LikePost_Handler,
+		},
+		{
+			MethodName: "CheckLikedPost",
+			Handler:    _Blog_CheckLikedPost_Handler,
 		},
 		{
 			MethodName: "UnlikePost",
