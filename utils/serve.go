@@ -62,6 +62,18 @@ func ConnectToDB() *gorm.DB {
 	return db
 }
 
+func ConnectToTestDB() *gorm.DB {
+	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Silent),
+	})
+	if err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
+
+	migrate(db)
+
+	return db
+}
 
 func ConnectToRedis() *redis.Client {
 	return redis.NewClient(&redis.Options{
