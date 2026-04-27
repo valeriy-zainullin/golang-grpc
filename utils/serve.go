@@ -142,6 +142,7 @@ func RunGrpcServer(grpcAddr string, exit chan struct{}, exited chan struct{}) {
 	logger := MakeLogger()
 	unaryLoggerOption := grpc.UnaryInterceptor(MakeUnaryLoggingInterceptor(logger))
 	streamingLoggerOption := grpc.StreamInterceptor(MakeStreamingLoggingInterceptor(logger))
+	redisHook := MakeRedisLoggingHook(logger)
 
 	grpcServer := grpc.NewServer(unaryLoggerOption, streamingLoggerOption)
 
@@ -152,6 +153,7 @@ func RunGrpcServer(grpcAddr string, exit chan struct{}, exited chan struct{}) {
 	blog.SetDB(db)
 
 	rdb := ConnectToRedis()
+	rdb.AddHook(redisHook)
 	blog.SetRedisDB(rdb)
 
 	proto.RegisterBlogServer(grpcServer, &blog)
