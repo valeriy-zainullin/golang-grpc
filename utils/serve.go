@@ -139,7 +139,11 @@ func RunRestServer(grpcAddr, httpAddr string, exit chan struct{}, exited chan st
 }
 
 func RunGrpcServer(grpcAddr string, exit chan struct{}, exited chan struct{}) {
-	grpcServer := grpc.NewServer()
+	logger := MakeLogger()
+	unaryLoggerOption := grpc.UnaryInterceptor(MakeUnaryLoggingInterceptor(logger))
+	streamingLoggerOption := grpc.StreamInterceptor(MakeStreamingLoggingInterceptor(logger))
+
+	grpcServer := grpc.NewServer(unaryLoggerOption, streamingLoggerOption)
 
 	blog := services.Blog{}
 
