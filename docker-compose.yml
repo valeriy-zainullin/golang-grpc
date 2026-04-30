@@ -1,4 +1,4 @@
-services:
+services: 
   postgresql:
     image: "mirror.gcr.io/postgres:15"
     restart: on-failure

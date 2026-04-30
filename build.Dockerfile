@@ -1,4 +1,4 @@
-FROM debian:trixie
+FROM debian:trixie 
 
 RUN \
   apt-get update && \
