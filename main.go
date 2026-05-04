@@ -9,20 +9,30 @@ import (
 )
 
 func main() {
-	grpcAddr := utils.DefaultGrpcAddress
-	httpAddr := utils.DefaultHttpRestAddress
+	grpcListenAddr := utils.DefaultGrpcAddress
+	restListenAddr := utils.DefaultHttpRestAddress
 
-	go func() {
-		go utils.RunRestServer(grpcAddr, httpAddr)
-		log.Printf("REST api server listening on %s", httpAddr)
-	}()
+	restGrpcInvokeAddr := utils.DefaultGrpcInvokeAddress
 
-	go func() {
-		go utils.RunGrpcServer(grpcAddr)
-		log.Println("gRPC server listening on " + grpcAddr)
-	}()
+	exit := make(chan struct{})
+	restExited := make(chan struct{})
+	grpcExited := make(chan struct{})
 
-	exit := make(chan os.Signal, 1)
-	signal.Notify(exit, syscall.SIGINT, syscall.SIGTERM)
-	<-exit
+	go utils.RunGrpcServer(grpcListenAddr, exit, grpcExited)
+	go utils.RunRestServer(restGrpcInvokeAddr, restListenAddr, exit, restExited)
+
+	log.Println("gRPC server listening on ", grpcListenAddr)
+	log.Println("REST api server listening on ", restListenAddr)
+
+	signalChannel := make(chan os.Signal, 1)
+	signal.Notify(signalChannel, syscall.SIGINT, syscall.SIGTERM)
+	<-signalChannel
+
+	close(exit)
+
+	<-restExited
+	log.Println("REST api server exited")
+
+	<-grpcExited
+	log.Println("gRPC server exited")
 }

@@ -24,8 +24,8 @@ const (
 
 type Page struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Offset        uint64                 `protobuf:"varint,1,opt,name=offset,proto3" json:"offset,omitempty"`
-	Limit         uint64                 `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	Offset        int32                  `protobuf:"varint,1,opt,name=offset,proto3" json:"offset,omitempty"`
+	Limit         int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -60,14 +60,14 @@ func (*Page) Descriptor() ([]byte, []int) {
 	return file_blog_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *Page) GetOffset() uint64 {
+func (x *Page) GetOffset() int32 {
 	if x != nil {
 		return x.Offset
 	}
 	return 0
 }
 
-func (x *Page) GetLimit() uint64 {
+func (x *Page) GetLimit() int32 {
 	if x != nil {
 		return x.Limit
 	}
@@ -267,16 +267,16 @@ func (x *PostId) GetValue() uint64 {
 }
 
 type Post struct {
-	state  protoimpl.MessageState `protogen:"open.v1"`
-	Id     *PostId                `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Author *User                  `protobuf:"bytes,2,opt,name=author,proto3" json:"author,omitempty"`
-	Body   string                 `protobuf:"bytes,3,opt,name=body,proto3" json:"body,omitempty"`
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Id       *PostId                `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	AuthorId *UserId                `protobuf:"bytes,2,opt,name=author_id,json=authorId,proto3" json:"author_id,omitempty"`
+	Body     string                 `protobuf:"bytes,3,opt,name=body,proto3" json:"body,omitempty"`
 	// Seconds since 1 Jan, 1970 00:00 UTC (unix time)
 	// Converted to client date and time with timezone
 	// at front end.
-	CreatedAt     uint64  `protobuf:"varint,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	NumLiked      uint32  `protobuf:"varint,5,opt,name=num_liked,json=numLiked,proto3" json:"num_liked,omitempty"`
-	Liked         []*User `protobuf:"bytes,6,rep,name=liked,proto3" json:"liked,omitempty"`
+	CreatedAt     uint64    `protobuf:"varint,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	NumLiked      uint64    `protobuf:"varint,5,opt,name=num_liked,json=numLiked,proto3" json:"num_liked,omitempty"`
+	Liked         []*UserId `protobuf:"bytes,6,rep,name=liked,proto3" json:"liked,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -318,9 +318,9 @@ func (x *Post) GetId() *PostId {
 	return nil
 }
 
-func (x *Post) GetAuthor() *User {
+func (x *Post) GetAuthorId() *UserId {
 	if x != nil {
-		return x.Author
+		return x.AuthorId
 	}
 	return nil
 }
@@ -339,14 +339,14 @@ func (x *Post) GetCreatedAt() uint64 {
 	return 0
 }
 
-func (x *Post) GetNumLiked() uint32 {
+func (x *Post) GetNumLiked() uint64 {
 	if x != nil {
 		return x.NumLiked
 	}
 	return 0
 }
 
-func (x *Post) GetLiked() []*User {
+func (x *Post) GetLiked() []*UserId {
 	if x != nil {
 		return x.Liked
 	}
@@ -537,6 +537,58 @@ func (x *LikePostResult) GetSuccess() bool {
 	return false
 }
 
+type CheckLikedPostResult struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Liked         bool                   `protobuf:"varint,2,opt,name=liked,proto3" json:"liked,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CheckLikedPostResult) Reset() {
+	*x = CheckLikedPostResult{}
+	mi := &file_blog_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckLikedPostResult) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckLikedPostResult) ProtoMessage() {}
+
+func (x *CheckLikedPostResult) ProtoReflect() protoreflect.Message {
+	mi := &file_blog_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckLikedPostResult.ProtoReflect.Descriptor instead.
+func (*CheckLikedPostResult) Descriptor() ([]byte, []int) {
+	return file_blog_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *CheckLikedPostResult) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *CheckLikedPostResult) GetLiked() bool {
+	if x != nil {
+		return x.Liked
+	}
+	return false
+}
+
 type UnlikePostResult struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
@@ -546,7 +598,7 @@ type UnlikePostResult struct {
 
 func (x *UnlikePostResult) Reset() {
 	*x = UnlikePostResult{}
-	mi := &file_blog_proto_msgTypes[10]
+	mi := &file_blog_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -558,7 +610,7 @@ func (x *UnlikePostResult) String() string {
 func (*UnlikePostResult) ProtoMessage() {}
 
 func (x *UnlikePostResult) ProtoReflect() protoreflect.Message {
-	mi := &file_blog_proto_msgTypes[10]
+	mi := &file_blog_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -571,7 +623,7 @@ func (x *UnlikePostResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UnlikePostResult.ProtoReflect.Descriptor instead.
 func (*UnlikePostResult) Descriptor() ([]byte, []int) {
-	return file_blog_proto_rawDescGZIP(), []int{10}
+	return file_blog_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *UnlikePostResult) GetSuccess() bool {
@@ -588,8 +640,8 @@ const file_blog_proto_rawDesc = "" +
 	"\n" +
 	"blog.proto\x12\x04blog\x1a\x1cgoogle/api/annotations.proto\"4\n" +
 	"\x04Page\x12\x16\n" +
-	"\x06offset\x18\x01 \x01(\x04R\x06offset\x12\x14\n" +
-	"\x05limit\x18\x02 \x01(\x04R\x05limit\"\x19\n" +
+	"\x06offset\x18\x01 \x01(\x05R\x06offset\x12\x14\n" +
+	"\x05limit\x18\x02 \x01(\x05R\x05limit\"\x19\n" +
 	"\x03Url\x12\x12\n" +
 	"\x04href\x18\x01 \x01(\tR\x04href\"\x1e\n" +
 	"\x06UserId\x12\x14\n" +
@@ -599,17 +651,15 @@ const file_blog_proto_rawDesc = "" +
 	"\bnickname\x18\x02 \x01(\tR\bnickname\x12&\n" +
 	"\tphoto_url\x18\x03 \x01(\v2\t.blog.UrlR\bphotoUrl\"\x1e\n" +
 	"\x06PostId\x12\x14\n" +
-	"\x05value\x18\x01 \x01(\x04R\x05value\"\xba\x01\n" +
+	"\x05value\x18\x01 \x01(\x04R\x05value\"\xc3\x01\n" +
 	"\x04Post\x12\x1c\n" +
-	"\x02id\x18\x01 \x01(\v2\f.blog.PostIdR\x02id\x12\"\n" +
-	"\x06author\x18\x02 \x01(\v2\n" +
-	".blog.UserR\x06author\x12\x12\n" +
+	"\x02id\x18\x01 \x01(\v2\f.blog.PostIdR\x02id\x12)\n" +
+	"\tauthor_id\x18\x02 \x01(\v2\f.blog.UserIdR\bauthorId\x12\x12\n" +
 	"\x04body\x18\x03 \x01(\tR\x04body\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\x04 \x01(\x04R\tcreatedAt\x12\x1b\n" +
-	"\tnum_liked\x18\x05 \x01(\rR\bnumLiked\x12 \n" +
-	"\x05liked\x18\x06 \x03(\v2\n" +
-	".blog.UserR\x05liked\"K\n" +
+	"\tnum_liked\x18\x05 \x01(\x04R\bnumLiked\x12\"\n" +
+	"\x05liked\x18\x06 \x03(\v2\f.blog.UserIdR\x05liked\"K\n" +
 	"\x10CreatePostResult\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x1d\n" +
 	"\n" +
@@ -619,13 +669,16 @@ const file_blog_proto_rawDesc = "" +
 	"\x10DeletePostResult\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\"*\n" +
 	"\x0eLikePostResult\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\",\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"F\n" +
+	"\x14CheckLikedPostResult\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x14\n" +
+	"\x05liked\x18\x02 \x01(\bR\x05liked\",\n" +
 	"\x10UnlikePostResult\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess2\xc1\x03\n" +
-	"\x04Blog\x12:\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess2\x9a\x04\n" +
+	"\x04Blog\x127\n" +
 	"\bGetPosts\x12\n" +
 	".blog.Page\x1a\n" +
-	".blog.Post\"\x14\x82\xd3\xe4\x93\x02\x0e:\x01*\"\t/v1/posts0\x01\x12F\n" +
+	".blog.Post\"\x11\x82\xd3\xe4\x93\x02\v\x12\t/v1/posts0\x01\x12F\n" +
 	"\n" +
 	"CreatePost\x12\n" +
 	".blog.Post\x1a\x16.blog.CreatePostResult\"\x14\x82\xd3\xe4\x93\x02\x0e:\x01*\x1a\t/v1/posts\x12B\n" +
@@ -633,7 +686,8 @@ const file_blog_proto_rawDesc = "" +
 	".blog.Post\x1a\x14.blog.EditPostResult\"\x14\x82\xd3\xe4\x93\x02\x0e:\x01*2\t/v1/posts\x12M\n" +
 	"\n" +
 	"DeletePost\x12\f.blog.PostId\x1a\x16.blog.DeletePostResult\"\x19\x82\xd3\xe4\x93\x02\x13*\x11/v1/posts/{value}\x12N\n" +
-	"\bLikePost\x12\f.blog.PostId\x1a\x14.blog.LikePostResult\"\x1e\x82\xd3\xe4\x93\x02\x18\x1a\x16/v1/posts/{value}/like\x12R\n" +
+	"\bLikePost\x12\f.blog.PostId\x1a\x14.blog.LikePostResult\"\x1e\x82\xd3\xe4\x93\x02\x18\x1a\x16/v1/posts/{value}/like\x12Z\n" +
+	"\x0eCheckLikedPost\x12\f.blog.PostId\x1a\x1a.blog.CheckLikedPostResult\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/v1/posts/{value}/like\x12R\n" +
 	"\n" +
 	"UnlikePost\x12\f.blog.PostId\x1a\x16.blog.UnlikePostResult\"\x1e\x82\xd3\xe4\x93\x02\x18*\x16/v1/posts/{value}/likeB\aZ\x05./genb\x06proto3"
 
@@ -649,40 +703,43 @@ func file_blog_proto_rawDescGZIP() []byte {
 	return file_blog_proto_rawDescData
 }
 
-var file_blog_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_blog_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_blog_proto_goTypes = []any{
-	(*Page)(nil),             // 0: blog.Page
-	(*Url)(nil),              // 1: blog.Url
-	(*UserId)(nil),           // 2: blog.UserId
-	(*User)(nil),             // 3: blog.User
-	(*PostId)(nil),           // 4: blog.PostId
-	(*Post)(nil),             // 5: blog.Post
-	(*CreatePostResult)(nil), // 6: blog.CreatePostResult
-	(*EditPostResult)(nil),   // 7: blog.EditPostResult
-	(*DeletePostResult)(nil), // 8: blog.DeletePostResult
-	(*LikePostResult)(nil),   // 9: blog.LikePostResult
-	(*UnlikePostResult)(nil), // 10: blog.UnlikePostResult
+	(*Page)(nil),                 // 0: blog.Page
+	(*Url)(nil),                  // 1: blog.Url
+	(*UserId)(nil),               // 2: blog.UserId
+	(*User)(nil),                 // 3: blog.User
+	(*PostId)(nil),               // 4: blog.PostId
+	(*Post)(nil),                 // 5: blog.Post
+	(*CreatePostResult)(nil),     // 6: blog.CreatePostResult
+	(*EditPostResult)(nil),       // 7: blog.EditPostResult
+	(*DeletePostResult)(nil),     // 8: blog.DeletePostResult
+	(*LikePostResult)(nil),       // 9: blog.LikePostResult
+	(*CheckLikedPostResult)(nil), // 10: blog.CheckLikedPostResult
+	(*UnlikePostResult)(nil),     // 11: blog.UnlikePostResult
 }
 var file_blog_proto_depIdxs = []int32{
 	2,  // 0: blog.User.id:type_name -> blog.UserId
 	1,  // 1: blog.User.photo_url:type_name -> blog.Url
 	4,  // 2: blog.Post.id:type_name -> blog.PostId
-	3,  // 3: blog.Post.author:type_name -> blog.User
-	3,  // 4: blog.Post.liked:type_name -> blog.User
+	2,  // 3: blog.Post.author_id:type_name -> blog.UserId
+	2,  // 4: blog.Post.liked:type_name -> blog.UserId
 	0,  // 5: blog.Blog.GetPosts:input_type -> blog.Page
 	5,  // 6: blog.Blog.CreatePost:input_type -> blog.Post
 	5,  // 7: blog.Blog.EditPost:input_type -> blog.Post
 	4,  // 8: blog.Blog.DeletePost:input_type -> blog.PostId
 	4,  // 9: blog.Blog.LikePost:input_type -> blog.PostId
-	4,  // 10: blog.Blog.UnlikePost:input_type -> blog.PostId
-	5,  // 11: blog.Blog.GetPosts:output_type -> blog.Post
-	6,  // 12: blog.Blog.CreatePost:output_type -> blog.CreatePostResult
-	7,  // 13: blog.Blog.EditPost:output_type -> blog.EditPostResult
-	8,  // 14: blog.Blog.DeletePost:output_type -> blog.DeletePostResult
-	9,  // 15: blog.Blog.LikePost:output_type -> blog.LikePostResult
-	10, // 16: blog.Blog.UnlikePost:output_type -> blog.UnlikePostResult
-	11, // [11:17] is the sub-list for method output_type
-	5,  // [5:11] is the sub-list for method input_type
+	4,  // 10: blog.Blog.CheckLikedPost:input_type -> blog.PostId
+	4,  // 11: blog.Blog.UnlikePost:input_type -> blog.PostId
+	5,  // 12: blog.Blog.GetPosts:output_type -> blog.Post
+	6,  // 13: blog.Blog.CreatePost:output_type -> blog.CreatePostResult
+	7,  // 14: blog.Blog.EditPost:output_type -> blog.EditPostResult
+	8,  // 15: blog.Blog.DeletePost:output_type -> blog.DeletePostResult
+	9,  // 16: blog.Blog.LikePost:output_type -> blog.LikePostResult
+	10, // 17: blog.Blog.CheckLikedPost:output_type -> blog.CheckLikedPostResult
+	11, // 18: blog.Blog.UnlikePost:output_type -> blog.UnlikePostResult
+	12, // [12:19] is the sub-list for method output_type
+	5,  // [5:12] is the sub-list for method input_type
 	5,  // [5:5] is the sub-list for extension type_name
 	5,  // [5:5] is the sub-list for extension extendee
 	0,  // [0:5] is the sub-list for field type_name
@@ -699,7 +756,7 @@ func file_blog_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_blog_proto_rawDesc), len(file_blog_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

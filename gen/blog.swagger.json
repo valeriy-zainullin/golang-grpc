@@ -12,7 +12,7 @@
   ],
   "paths": {
     "/v1/posts": {
-      "post": {
+      "get": {
         "operationId": "Blog_GetPosts",
         "responses": {
           "200": {
@@ -39,12 +39,18 @@
         },
         "parameters": [
           {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/blogPage"
-            }
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
           }
         ],
         "tags": [
@@ -144,6 +150,35 @@
       }
     },
     "/v1/posts/{value}/like": {
+      "get": {
+        "operationId": "Blog_CheckLikedPost",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/blogCheckLikedPostResult"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "value",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          }
+        ],
+        "tags": [
+          "Blog"
+        ]
+      },
       "delete": {
         "operationId": "Blog_UnlikePost",
         "responses": {
@@ -205,6 +240,17 @@
     }
   },
   "definitions": {
+    "blogCheckLikedPostResult": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "liked": {
+          "type": "boolean"
+        }
+      }
+    },
     "blogCreatePostResult": {
       "type": "object",
       "properties": {
@@ -241,27 +287,14 @@
         }
       }
     },
-    "blogPage": {
-      "type": "object",
-      "properties": {
-        "offset": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "limit": {
-          "type": "string",
-          "format": "uint64"
-        }
-      }
-    },
     "blogPost": {
       "type": "object",
       "properties": {
         "id": {
           "$ref": "#/definitions/blogPostId"
         },
-        "author": {
-          "$ref": "#/definitions/blogUser"
+        "author_id": {
+          "$ref": "#/definitions/blogUserId"
         },
         "body": {
           "type": "string"
@@ -272,13 +305,13 @@
           "description": "Seconds since 1 Jan, 1970 00:00 UTC (unix time)\nConverted to client date and time with timezone\nat front end."
         },
         "num_liked": {
-          "type": "integer",
-          "format": "int64"
+          "type": "string",
+          "format": "uint64"
         },
         "liked": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/blogUser"
+            "$ref": "#/definitions/blogUserId"
           }
         }
       }
@@ -297,28 +330,6 @@
       "properties": {
         "success": {
           "type": "boolean"
-        }
-      }
-    },
-    "blogUrl": {
-      "type": "object",
-      "properties": {
-        "href": {
-          "type": "string"
-        }
-      }
-    },
-    "blogUser": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "$ref": "#/definitions/blogUserId"
-        },
-        "nickname": {
-          "type": "string"
-        },
-        "photo_url": {
-          "$ref": "#/definitions/blogUrl"
         }
       }
     },

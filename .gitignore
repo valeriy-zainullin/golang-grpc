@@ -1,2 +1,5 @@
 venv
 main
+main-test
+db-data
+redis-data

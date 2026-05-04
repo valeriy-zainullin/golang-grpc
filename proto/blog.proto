@@ -8,8 +8,8 @@ option go_package = "./gen";
 package blog;
 
 message Page {
-    uint64 offset = 1;
-    uint64 limit = 2;
+    int32 offset = 1;
+    int32 limit = 2;
 }
 
 message Url {
@@ -32,7 +32,7 @@ message PostId {
 
 message Post {
     PostId id = 1;
-    User author = 2;
+    UserId author_id = 2;
     string body = 3;
 
     // Seconds since 1 Jan, 1970 00:00 UTC (unix time)
@@ -40,8 +40,8 @@ message Post {
     // at front end.
     uint64 created_at = 4;
 
-    uint32 num_liked = 5;
-    repeated User liked = 6;
+    uint64 num_liked = 5;
+    repeated UserId liked = 6;
 }
 
 message CreatePostResult {
@@ -61,6 +61,11 @@ message LikePostResult {
     bool success = 1;
 }
 
+message CheckLikedPostResult {
+    bool success = 1;
+    bool liked = 2;
+}
+
 message UnlikePostResult {
     bool success = 1;
 }
@@ -69,8 +74,7 @@ message UnlikePostResult {
 service Blog {
     rpc GetPosts(Page) returns(stream Post) {
         option (google.api.http) = {
-            post: "/v1/posts"
-            body: "*"
+            get: "/v1/posts"
         };
     }
 
@@ -95,6 +99,11 @@ service Blog {
     rpc LikePost(PostId) returns(LikePostResult) {
         option (google.api.http) = {
             put: "/v1/posts/{value}/like"
+        };
+    }
+    rpc CheckLikedPost(PostId) returns(CheckLikedPostResult) {
+        option (google.api.http) = {
+            get: "/v1/posts/{value}/like"
         };
     }
     rpc UnlikePost(PostId) returns(UnlikePostResult) {
