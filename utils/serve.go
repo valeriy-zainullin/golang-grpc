@@ -3,9 +3,6 @@ package utils
 import (
 	"context"
 	"log"
-	proto "main/gen"
-	"main/models"
-	"main/services"
 	"net"
 	"net/http"
 
@@ -19,6 +16,12 @@ import (
 	"gorm.io/gorm/logger"
 
 	"github.com/redis/go-redis/v9"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+
+	proto "main/gen"
+	"main/models"
+	"main/services"
 )
 
 const DefaultGrpcAddress = "0.0.0.0:50051"
@@ -91,17 +94,38 @@ func ConnectToTestRedis() *redis.Client {
 	})
 }
 
+func RunMetricsServer(metricsRestAddr string, exit chan struct{}, exited chan struct{}) {
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", promhttp.Handler())
+
+	server := http.Server{
+		Addr:    metricsRestAddr,
+		Handler: mux,
+	}
+
+	go func() {
+		<-exit
+		server.Shutdown(context.TODO())
+		close(exited)
+	}()
+
+	err := server.ListenAndServe()
+	if err != nil {
+		log.Fatalf("Http metrics rest server failed to listen: %v", err)
+	}
+}
+
 /* Also useful: https://habr.com/ru/articles/658769/ */
-func RunRestServer(grpcAddr, httpAddr string, exit chan struct{}, exited chan struct{}) {
+func RunRestServer(grpcAddr, restAddr string, exit chan struct{}, exited chan struct{}) {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	mux := grpcGateway.NewServeMux()
+
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	}
-
 	err := proto.RegisterBlogHandlerFromEndpoint(ctx, mux, grpcAddr, opts)
 	if err != nil {
 		log.Fatalf("could not register handler: %v", err)
@@ -122,10 +146,9 @@ func RunRestServer(grpcAddr, httpAddr string, exit chan struct{}, exited chan st
 	})
 
 	server := http.Server{
-		Addr:    httpAddr,
+		Addr:    restAddr,
 		Handler: mux,
 	}
-	err = server.ListenAndServe()
 
 	go func() {
 		<-exit
@@ -133,13 +156,26 @@ func RunRestServer(grpcAddr, httpAddr string, exit chan struct{}, exited chan st
 		close(exited)
 	}()
 
+	err = server.ListenAndServe()
+
 	if err != nil {
 		log.Fatalf("Http rest server failed to listen: %v", err)
 	}
 }
 
 func RunGrpcServer(grpcAddr string, exit chan struct{}, exited chan struct{}) {
-	grpcServer := grpc.NewServer()
+	logger := MakeLogger()
+	unaryLoggerOption := grpc.UnaryInterceptor(MakeUnaryLoggingInterceptor(logger))
+	unaryMetricsOption := grpc.UnaryInterceptor(MakeUnaryMetricsInterceptor())
+	streamingLoggerOption := grpc.StreamInterceptor(MakeStreamingLoggingInterceptor(logger))
+	streamingMetricsOption := grpc.StreamInterceptor(MakeStreamingMetricsInterceptor())
+
+	redisHook := MakeRedisLoggingHook(logger)
+
+	grpcServer := grpc.NewServer(
+		unaryLoggerOption, streamingLoggerOption,
+		unaryMetricsOption, streamingMetricsOption,
+	)
 
 	blog := services.Blog{}
 
@@ -148,6 +184,7 @@ func RunGrpcServer(grpcAddr string, exit chan struct{}, exited chan struct{}) {
 	blog.SetDB(db)
 
 	rdb := ConnectToRedis()
+	rdb.AddHook(redisHook)
 	blog.SetRedisDB(rdb)
 
 	proto.RegisterBlogServer(grpcServer, &blog)
